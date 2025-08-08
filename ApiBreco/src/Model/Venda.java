@@ -4,10 +4,14 @@ import java.util.Date;
 
 public class Venda {
     private long id;
-    private Model.Produto produto;
-    private Date data;
+    private Produto produto;
     private int quantidade;
+    private double valorTotal;
+    private Date data; // <-- Atributo necessário para usar setData()
+    private Fornecedor fornecedor;
 
+    public Venda() {
+    }
     public long getId() {
         return id;
     }
@@ -16,20 +20,30 @@ public class Venda {
         this.id = id;
     }
 
-    public Model.Produto getProduto() {
+
+
+    public Fornecedor getFornecedor() {
+        return fornecedor;
+    }
+    public void setFornecedor(Fornecedor fornecedor) {
+        this.fornecedor = fornecedor;
+    }
+    public Venda(int id, Produto produto, int quantidade, double valorTotal, Date data) {
+        this.id = id;
+        this.produto = produto;
+        this.quantidade = quantidade;
+        this.valorTotal = valorTotal;
+        this.data = data;
+    }
+
+
+
+    public Produto getProduto() {
         return produto;
     }
 
-    public void setProduto(Model.Produto produto) {
+    public void setProduto(Produto produto) {
         this.produto = produto;
-    }
-
-    public Date getData() {
-        return data;
-    }
-
-    public void setData(Date data) {
-        this.data = data;
     }
 
     public int getQuantidade() {
@@ -40,21 +54,30 @@ public class Venda {
         this.quantidade = quantidade;
     }
 
+    public double getValorTotal() {
+        return valorTotal;
+    }
+
+    public void setValorTotal(double valorTotal) {
+        this.valorTotal = valorTotal;
+    }
+
+    public Date getData() {
+        return data;
+    }
+
+    public void setData(Date data) {
+        this.data = data;
+    }
+
     @Override
     public String toString() {
-        return "ID venda:" + id + ", produto: " + produto +
-                ", data: " + data + ", quantidade: " + quantidade;
-    }
-
-    public Venda(long id, Model.Produto produto, Date data,
-                 int quantidade) {
-        this.id = id;
-        this.produto = produto;
-        this.data = data;
-        this.quantidade = quantidade;
-    }
-
-    public Venda() {
-        super();
+        return "Venda{" +
+                "id=" + id +
+                ", produto=" + produto +
+                ", quantidade=" + quantidade +
+                ", valorTotal=" + valorTotal +
+                ", data=" + data +
+                '}';
     }
 }

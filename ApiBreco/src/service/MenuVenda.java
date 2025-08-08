@@ -4,7 +4,6 @@ import Dao.ProdutoDAO;
 import Dao.VendaDAO;
 import Model.Produto;
 import Model.Venda;
-
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
