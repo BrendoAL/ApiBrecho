@@ -3,7 +3,6 @@ package Dao;
 import Model.Produto;
 import Model.Venda;
 import View.ConexaoDB;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

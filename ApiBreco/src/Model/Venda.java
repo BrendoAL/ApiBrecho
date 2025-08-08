@@ -20,8 +20,6 @@ public class Venda {
         this.id = id;
     }
 
-
-
     public Fornecedor getFornecedor() {
         return fornecedor;
     }
@@ -35,8 +33,6 @@ public class Venda {
         this.valorTotal = valorTotal;
         this.data = data;
     }
-
-
 
     public Produto getProduto() {
         return produto;

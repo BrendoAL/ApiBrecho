@@ -1,18 +1,16 @@
 package View;
 
+import Dao.ProdutoDAO;
 import Model.Produto;
-import service.ProdutoService;
-
 import java.util.List;
 import java.util.Scanner;
 
 public class MenuProduto {
-    private static Scanner leitor;
-    private static Scanner sc;
 
     public static void menuProduto() {
-        sc = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
         int opcao;
+
         do {
             System.out.println("\n--- MENU DE PRODUTOS ---");
             System.out.println("1 - Cadastrar Produto");
@@ -28,142 +26,148 @@ public class MenuProduto {
 
             switch (opcao) {
                 case 1:
-                    inserirProduto();
+                    inserirProduto(sc);
                     break;
                 case 2:
                     listarProdutos();
                     break;
                 case 3:
-                    alterarProduto();
+                    alterarProduto(sc);
                     break;
                 case 4:
-                    excluirProduto();
+                    excluirProduto(sc);
                     break;
                 case 5:
-                    getByIdProduto();
+                    getByIdProduto(sc);
                     break;
                 case 0:
-                    System.out.println("Voltando ao menu principal..;");
+                    System.out.println("Voltando ao menu principal...");
                     break;
                 default:
                     System.out.println("Opção inválida!");
+                    break;
             }
+
         } while (opcao != 0);
     }
 
-    private static void inserirProduto() {
-        leitor = new Scanner(System.in);
-
+    private static void inserirProduto(Scanner sc) {
         System.out.print("Digite o nome do produto: ");
-        String nome = leitor.nextLine();
+        String nome = sc.nextLine();
+
         System.out.print("Digite o tamanho do produto: ");
-        String tamanho = leitor.nextLine();
+        String tamanho = sc.nextLine();
+
         System.out.print("Digite o preço do produto: ");
-        double preco = leitor.nextDouble();
-        leitor.nextLine(); // Limpa o buffer
+        double preco = sc.nextDouble();
+        sc.nextLine();
+
         System.out.print("Digite o status do produto: ");
-        String status = leitor.nextLine();
-        System.err.println("Digite o estoque do produto: ");
-        int estoque = leitor.nextInt();
-        leitor.nextLine();
+        String status = sc.nextLine();
+
         System.out.print("Digite o ID do fornecedor do produto: ");
-        int fornecedorId = leitor.nextInt();
-        leitor.nextLine();
+        int fornecedorId = sc.nextInt();
+        sc.nextLine();
+
+        System.out.print("Digite a quantidade em estoque: ");
+        int estoque = sc.nextInt();
+        sc.nextLine();
 
         Produto produto = new Produto();
         produto.setNome(nome);
         produto.setTamanho(tamanho);
         produto.setPreco(preco);
         produto.setStatusAtual(status);
-        produto.setEstoque(estoque);
         produto.setTb_fornecedor_id(fornecedorId);
+        produto.setEstoque(estoque);
 
-        try {
-            ProdutoService.cadastrarProduto(produto);
-            System.out.println("Produto cadastrado com sucesso.");
-        } catch (RuntimeException e) {
-            System.out.println("Erro ao cadastrar produto: " + e.getMessage());
-        }
+        ProdutoDAO.inserirProduto(produto);
+        System.out.println("Produto cadastrado com sucesso.");
     }
 
     private static void listarProdutos() {
-        List<Produto> produtos = ProdutoService.listarProdutos();
+        List<Produto> produtos = ProdutoDAO.listarProduto();
 
         if (produtos.isEmpty()) {
             System.out.println("Nenhum produto cadastrado.");
         } else {
-            System.out.println("Lista de produtos:");
+            System.out.println("\n--- Lista de Produtos ---");
             for (Produto p : produtos) {
-                System.out.println(p);
+                System.out.println("ID: " + p.getId()
+                        + " | Nome: " + p.getNome()
+                        + " | Tamanho: " + p.getTamanho()
+                        + " | Preço: R$" + p.getPreco()
+                        + " | Status: " + p.getStatusAtual()
+                        + " | Estoque: " + p.getEstoque()
+                        + " | Fornecedor ID: " + p.getTb_fornecedor_id());
             }
         }
     }
 
-    private static void alterarProduto() {
-        leitor = new Scanner(System.in);
-
+    private static void alterarProduto(Scanner sc) { //preciso colocar a condição de alterar somente os digitados o restante que pular deixar como esta exceto o status que quero zerado ate ser locado o produto
         System.out.print("Digite o ID do produto para alterar: ");
-        int id = leitor.nextInt();
-        leitor.nextLine();
+        int id = sc.nextInt();
+        sc.nextLine();
 
-        Produto produto = ProdutoService.getByID(id);
+        Produto produto = ProdutoDAO.getByIdProduto(id);
         if (produto == null) {
             System.out.println("Produto não encontrado.");
             return;
         }
 
         System.out.print("Digite o novo nome do produto: ");
-        produto.setNome(leitor.nextLine());
+        produto.setNome(sc.nextLine());
+
         System.out.print("Digite o novo tamanho do produto: ");
-        produto.setTamanho(leitor.nextLine());
+        produto.setTamanho(sc.nextLine());
+
         System.out.print("Digite o novo preço do produto: ");
-        produto.setPreco(leitor.nextDouble());
-        leitor.nextLine();
+        produto.setPreco(sc.nextDouble());
+        sc.nextLine();
+
         System.out.print("Digite o novo status do produto: ");
-        produto.setStatusAtual(leitor.nextLine());
+        produto.setStatusAtual(sc.nextLine());
+
         System.out.print("Digite o novo ID do fornecedor do produto: ");
-        produto.setTb_fornecedor_id(leitor.nextInt());
-        leitor.nextLine();
+        produto.setTb_fornecedor_id(sc.nextInt());
+        sc.nextLine();
 
-        if(ProdutoService.alterarProduto(produto)) {
-            System.out.println("Produto alterado com sucesso.");
-        } else {
-            System.out.println("Prouto não encontrado.");
-        }
+        System.out.print("Digite a nova quantidade em estoque: ");
+        produto.setEstoque(sc.nextInt());
+        sc.nextLine();
+
+        ProdutoDAO.alterarProduto(produto);
+        System.out.println("Produto alterado com sucesso.");
     }
 
-    private static void excluirProduto() {
-        System.out.print("ID do produto: ");
-        int id = leitor.nextInt();
-        leitor.nextLine();
+    private static void excluirProduto(Scanner sc) {
+        System.out.print("Digite o ID do produto para deletar: ");
+        int id = sc.nextInt();
+        sc.nextLine();
 
-        if (ProdutoService.excluirProduto(id)) {
-            System.out.println("Produto excluído com sucesso.");
-        } else {
-            System.out.println("Produto não encontrado.");
-        }
+        if( ProdutoDAO.excluirProduto(id));
+        System.out.println("Produto excluído com sucesso.");
     }
 
-    private static void getByIdProduto() {
-        System.out.print("ID do produto: ");
-        int id = leitor.nextInt();
-        leitor.nextLine();
+    private static void getByIdProduto(Scanner sc) {
+        System.out.print("Digite o ID do produto para buscar: ");
+        int id = sc.nextInt();
+        sc.nextLine();
 
-        Produto produto = ProdutoService.listarProdutos().stream()
-                .filter(p -> p.getId() == id)
-                .findFirst()
-                .orElse(null);
+        Produto produto = ProdutoDAO.getByIdProduto(id);
 
         if (produto == null) {
             System.out.println("Produto não encontrado.");
         } else {
+            System.out.println("\n--- Produto Encontrado ---");
             System.out.println("ID: " + produto.getId());
             System.out.println("Nome: " + produto.getNome());
             System.out.println("Tamanho: " + produto.getTamanho());
-            System.out.println("Preço: " + produto.getPreco());
+            System.out.println("Preço: R$" + produto.getPreco());
             System.out.println("Status: " + produto.getStatusAtual());
             System.out.println("Estoque: " + produto.getEstoque());
             System.out.println("Fornecedor ID: " + produto.getTb_fornecedor_id());
         }
     }
 }
+

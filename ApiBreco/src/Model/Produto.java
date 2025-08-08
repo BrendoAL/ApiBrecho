@@ -21,13 +21,14 @@ public class Produto {
     public Produto() {
     }
 
-    public Produto(int id, String nome, String tamanho, double preco, String statusAtual, int tb_fornecedor_id) {
+    public Produto(int id, String nome, String tamanho, double preco, String statusAtual, int tb_fornecedor_id, int estoque) {
         this.id = id;
         this.nome = nome;
         this.tamanho = tamanho;
         this.preco = preco;
         this.statusAtual = statusAtual;
         this.tb_fornecedor_id = tb_fornecedor_id;
+        this.estoque = estoque;
     }
 
     public int getId() {
@@ -87,6 +88,7 @@ public class Produto {
                 ", preco=" + preco +
                 ", statusAtual='" + statusAtual + '\'' +
                 ", tb_fornecedor_id=" + tb_fornecedor_id +
+                ", estoque=" + estoque +
                 '}';
     }
 }
