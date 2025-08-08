@@ -1,4 +1,4 @@
-package service;
+package View;
 
 import Dao.FornecedorDAO;
 import Model.Fornecedor;

@@ -1,20 +1,6 @@
 package View;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.Scanner;
-import Dao.LocacaoDAO;
-import Dao.ProdutoDAO;
-import Dao.VendaDAO;
-import Model.Fornecedor;
-import Dao.FornecedorDAO;
-import Model.Locacao;
-import Model.Produto;
-import Model.Venda;
-import service.MenuFornecedor;
-import service.MenuLocacao;
-import service.MenuProduto;
-import service.MenuVenda;
 
 public class App {
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package service;
+package View;
 
 import Dao.ProdutoDAO;
 import Dao.VendaDAO;
