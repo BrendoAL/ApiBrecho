@@ -8,6 +8,15 @@ public class Produto {
     private double preco;
     private String statusAtual;
     private int tb_fornecedor_id;
+    private int estoque;
+
+    public int getEstoque() {
+        return estoque;
+    }
+
+    public void setEstoque(int estoque) {
+        this.estoque = estoque;
+    }
 
     public Produto() {
     }

@@ -3,54 +3,82 @@ package Model;
 import java.time.LocalDate;
 
 public class Locacao {
-    private int id;
-    private Fornecedor fornecedor;
-    private Produto produto;
-    private LocalDate dataLocacao;
-    private LocalDate dataDevolucao;
-    private String statusAtual; // "Locado" ou "Indisponível"
+        private int id;
+        private Fornecedor fornecedor;
+        private Produto produto;
+        private int fornecedorId;
+        private int produtoId;
+        private LocalDate dataLocacao;
+        private LocalDate dataDevolucao;
+        private String statusAtual; // "Locado" ou "Indisponível"
 
-    public Locacao() {}
+        public Locacao() {}
 
-    public Locacao(int id, Fornecedor fornecedor, Produto produto, LocalDate dataLocacao, LocalDate dataDevolucao) {
-        this.id = id;
-        this.fornecedor = fornecedor;
-        this.produto = produto;
-        this.dataLocacao = dataLocacao;
-        this.dataDevolucao = dataDevolucao;
-        this.statusAtual = calcularStatus();
-    }
+        public Locacao(int id, Fornecedor fornecedor, Produto produto, LocalDate dataLocacao, LocalDate dataDevolucao) {
+                this.id = id;
+                this.fornecedor = fornecedor;
+                this.produto = produto;
+                this.dataLocacao = dataLocacao;
+                this.dataDevolucao = dataDevolucao;
+                this.statusAtual = calcularStatus();
 
-    private String calcularStatus() {
-        if (LocalDate.now().isAfter(dataDevolucao)) {
-            return "Indisponível";
-        } else {
-            return "Locado";
+                // Se objetos não forem nulos, extrair IDs
+                if (fornecedor != null) {
+                        this.fornecedorId = fornecedor.getId();
+                }
+                if (produto != null) {
+                        this.produtoId = produto.getId();
+                }
         }
-    }
 
-    // Getters e Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+        // Calcula status automaticamente com base na data
+        private String calcularStatus() {
+                if (LocalDate.now().isAfter(dataDevolucao)) {
+                        return "Indisponível";
+                } else {
+                        return "Locado";
+                }
+        }
 
-    public Fornecedor getFornecedor() { return fornecedor; }
-    public void setFornecedor(Fornecedor fornecedor) { this.fornecedor = fornecedor; }
+        // Getters e Setters
+        public int getId() { return id; }
+        public void setId(int id) { this.id = id; }
 
-    public Produto getProduto() { return produto; }
-    public void setProduto(Produto produto) { this.produto = produto; }
+        public Fornecedor getFornecedor() { return fornecedor; }
+        public void setFornecedor(Fornecedor fornecedor) {
+                this.fornecedor = fornecedor;
+                if (fornecedor != null) {
+                        this.fornecedorId = fornecedor.getId();
+                }
+        }
 
-    public LocalDate getDataLocacao() { return dataLocacao; }
-    public void setDataLocacao(LocalDate dataLocacao) { this.dataLocacao = dataLocacao; }
+        public Produto getProduto() { return produto; }
+        public void setProduto(Produto produto) {
+                this.produto = produto;
+                if (produto != null) {
+                        this.produtoId = produto.getId();
+                }
+        }
 
-    public LocalDate getDataDevolucao() { return dataDevolucao; }
-    public void setDataDevolucao(LocalDate dataDevolucao) { this.dataDevolucao = dataDevolucao; }
+        public int getFornecedorId() { return fornecedorId; }
+        public void setFornecedorId(int fornecedorId) { this.fornecedorId = fornecedorId; }
 
-    public String getStatusAtual() {
-        return calcularStatus();
-    }
+        public int getProdutoId() { return produtoId; }
+        public void setProdutoId(int produtoId) { this.produtoId = produtoId; }
 
-    public void setStatusAtual(String statusAtual) {
-        this.statusAtual = statusAtual;
-    }
+        public LocalDate getDataLocacao() { return dataLocacao; }
+        public void setDataLocacao(LocalDate dataLocacao) { this.dataLocacao = dataLocacao; }
+
+        public LocalDate getDataDevolucao() { return dataDevolucao; }
+        public void setDataDevolucao(LocalDate dataDevolucao) { this.dataDevolucao = dataDevolucao; }
+
+        public String getStatusAtual() {
+                return calcularStatus();
+        }
+
+        public void setStatusAtual(String statusAtual) {
+                this.statusAtual = statusAtual;
+        }
 }
+
 
