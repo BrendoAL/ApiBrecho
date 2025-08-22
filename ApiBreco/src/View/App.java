@@ -1,5 +1,10 @@
 package View;
 
+import service.MenuFornecedor;
+import service.MenuLocacao;
+import service.MenuProduto;
+import service.MenuVenda;
+
 import java.util.Scanner;
 
 public class App {

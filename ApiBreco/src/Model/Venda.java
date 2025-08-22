@@ -1,79 +1,55 @@
 package Model;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Venda {
-    private long id;
-    private Produto produto;
-    private int quantidade;
-    private double valorTotal;
-    private Date data; // <-- Atributo necessário para usar setData()
-    private Fornecedor fornecedor;
+    private int id;
+    private LocalDate dataVenda;
+    private double total;
+    private int clienteId;
+    private String formaPagamento;
+    private List<VendaItem> itens = new ArrayList<>(); // Lista de itens da venda
 
+
+
+
+    public int getId() { return id; }
     public Venda() {
-    }
-    public long getId() {
-        return id;
-    }
+        super();
 
-    public void setId(long id) {
-        this.id = id;
     }
+    public void setId(int id) { this.id = id; }
 
-    public Fornecedor getFornecedor() {
-        return fornecedor;
-    }
-    public void setFornecedor(Fornecedor fornecedor) {
-        this.fornecedor = fornecedor;
-    }
-    public Venda(int id, Produto produto, int quantidade, double valorTotal, Date data) {
-        this.id = id;
-        this.produto = produto;
-        this.quantidade = quantidade;
-        this.valorTotal = valorTotal;
-        this.data = data;
-    }
+    public LocalDate getDataVenda() { return dataVenda; }
+    public void setDataVenda(LocalDate dataVenda) { this.dataVenda = dataVenda; }
 
-    public Produto getProduto() {
-        return produto;
-    }
+    public double getTotal() { return total; }
+    public void setTotal(double total) { this.total = total; }
 
-    public void setProduto(Produto produto) {
-        this.produto = produto;
-    }
+    public int getClienteId() { return clienteId; }
+    public void setClienteId(int clienteId) { this.clienteId = clienteId; }
 
-    public int getQuantidade() {
-        return quantidade;
-    }
+    public String getFormaPagamento() { return formaPagamento; }
+    public void setFormaPagamento(String formaPagamento) { this.formaPagamento = formaPagamento; }
 
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public double getValorTotal() {
-        return valorTotal;
-    }
-
-    public void setValorTotal(double valorTotal) {
-        this.valorTotal = valorTotal;
-    }
-
-    public Date getData() {
-        return data;
-    }
-
-    public void setData(Date data) {
-        this.data = data;
-    }
+    public List<VendaItem> getItens() { return itens; }
+    public void setItens(List<VendaItem> itens) { this.itens = itens; }
 
     @Override
     public String toString() {
-        return "Venda{" +
-                "id=" + id +
-                ", produto=" + produto +
-                ", quantidade=" + quantidade +
-                ", valorTotal=" + valorTotal +
-                ", data=" + data +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Venda #").append(id).append(" | Data: ").append(dataVenda)
+                .append(" | Cliente ID: ").append(clienteId)
+                .append(" | Total: R$ ").append(String.format("%.2f", total))
+                .append(" | Pagamento: ").append(formaPagamento).append("\n");
+        sb.append("--- Itens da Venda ---\n");
+        for (VendaItem item : itens) {
+            sb.append("  - ").append(item.getProdutoNome())
+                    .append(" | Qtd: ").append(item.getQuantidade())
+                    .append(" | Preço Unitário: R$ ").append(String.format("%.2f", item.getPrecoUnitario())).append("\n");
+        }
+        return sb.toString();
     }
 }

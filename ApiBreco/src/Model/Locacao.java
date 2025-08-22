@@ -22,7 +22,7 @@ public class Locacao {
                 this.dataDevolucao = dataDevolucao;
                 this.statusAtual = calcularStatus();
 
-                // Se objetos não forem nulos, extrair IDs
+
                 if (fornecedor != null) {
                         this.fornecedorId = fornecedor.getId();
                 }
@@ -40,7 +40,7 @@ public class Locacao {
                 }
         }
 
-        // Getters e Setters
+
         public int getId() { return id; }
         public void setId(int id) { this.id = id; }
 
@@ -80,5 +80,3 @@ public class Locacao {
                 this.statusAtual = statusAtual;
         }
 }
-
-

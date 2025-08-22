@@ -1,10 +1,10 @@
-package View;
-
-import Dao.FornecedorDAO;
-import Model.Fornecedor;
+package service;
 
 import java.util.List;
 import java.util.Scanner;
+
+import Dao.FornecedorDAO;
+import Model.Fornecedor;
 
 public class MenuFornecedor {
 
@@ -20,6 +20,7 @@ public class MenuFornecedor {
             System.out.println("3. Alterar Fornecedor/Cliente");
             System.out.println("4. Excluir Fornecedor/Cliente");
             System.out.println("5. Listar Fornecedores em ordem alfabética");
+            System.out.println("6. Listar Fornecedores ");
 
             System.out.println("0. Voltar ao menu principal");
             System.out.print("Escolha uma opção: ");
@@ -40,7 +41,11 @@ public class MenuFornecedor {
                     excluirFornecedor(); // FAZER A ALTERAÇÃO POR CPF OU CNPJ
                     break;
                 case 5:
-                    listarFornecedores(); //ESSA LISTA MOSTRA DE A á Z
+                    listarFornecedoresAaZ(); //ESSA LISTA MOSTRA DE A á Z
+                    break;
+                case 6:
+                    listarFornecedores();
+
                     break;
 
                 case 0:
@@ -56,7 +61,22 @@ public class MenuFornecedor {
     }
 
     public static void listarFornecedores() {
-        List<Fornecedor> lista = FornecedorDAO.listarFornecedores();
+        List<Fornecedor> fornecedores = FornecedorDAO.listarFornecedores();
+
+        System.out.println("=== LISTA DE FORNECEDORES ===");
+        for (Fornecedor f : fornecedores) {
+            System.out.println("ID: " + f.getId());
+            System.out.println("Nome: " + f.getNome());
+            System.out.println("Telefone: " + f.getTelefone());
+            System.out.println("CPF: " + f.getCpf());
+            System.out.println("Endereço: " + f.getEndereco());
+            System.out.println("------------------------------------------");
+        }
+    }
+
+
+    public static void listarFornecedoresAaZ() {
+        List<Fornecedor> lista = FornecedorDAO.listarFornecedoresAaZ();
 
         if (lista.isEmpty()) {
             System.out.println("Nenhum fornecedor cadastrado.");
@@ -103,7 +123,7 @@ public class MenuFornecedor {
         System.out.print("Digite o ID do fornecedor/cliente: ");
         int id = leitor.nextInt();
 
-        Fornecedor fornecedor = FornecedorDAO.consultarFornecedorPorId(id);
+        Fornecedor fornecedor = FornecedorDAO.getById(id);
 
         if (fornecedor != null) {
             System.out.println("Fornecedor/cliente encontrado:");
@@ -123,9 +143,9 @@ public class MenuFornecedor {
 
         System.out.print("Digite o ID do fornecedor que deseja alterar: ");
         int id = leitor.nextInt();
-        leitor.nextLine(); //
+        leitor.nextLine(); // Consumir quebra de linha
 
-        Fornecedor fornecedorExistente = FornecedorDAO.consultarFornecedorPorId(id);
+        Fornecedor fornecedorExistente = FornecedorDAO.getById(id);
 
         if (fornecedorExistente == null) {
             System.out.println("Fornecedor não encontrado com o ID informado.");
@@ -138,24 +158,31 @@ public class MenuFornecedor {
         System.out.println("CPF: " + fornecedorExistente.getCpf());
         System.out.println("Endereço: " + fornecedorExistente.getEndereco());
 
-        System.out.println("\nDigite os novos dados:");
+        System.out.println("\nDigite os novos dados (pressione Enter para manter o valor atual):");
 
-        System.out.print("Novo nome: ");
+        System.out.print("Novo nome (" + fornecedorExistente.getNome() + "): ");
         String novoNome = leitor.nextLine();
+        if (!novoNome.isEmpty()) {
+            fornecedorExistente.setNome(novoNome);
+        }
 
-        System.out.print("Novo telefone: ");
+        System.out.print("Novo telefone (" + fornecedorExistente.getTelefone() + "): ");
         String novoTelefone = leitor.nextLine();
+        if (!novoTelefone.isEmpty()) {
+            fornecedorExistente.setTelefone(novoTelefone);
+        }
 
-        System.out.print("Novo CPF: ");
+        System.out.print("Novo CPF (" + fornecedorExistente.getCpf() + "): ");
         String novoCpf = leitor.nextLine();
+        if (!novoCpf.isEmpty()) {
+            fornecedorExistente.setCpf(novoCpf);
+        }
 
-        System.out.print("Novo endereço: ");
+        System.out.print("Novo endereço (" + fornecedorExistente.getEndereco() + "): ");
         String novoEndereco = leitor.nextLine();
-
-        fornecedorExistente.setNome(novoNome);
-        fornecedorExistente.setTelefone(novoTelefone);
-        fornecedorExistente.setCpf(novoCpf);
-        fornecedorExistente.setEndereco(novoEndereco);
+        if (!novoEndereco.isEmpty()) {
+            fornecedorExistente.setEndereco(novoEndereco);
+        }
 
         boolean sucesso = FornecedorDAO.alterarFornecedorPorId(fornecedorExistente);
 
@@ -164,8 +191,8 @@ public class MenuFornecedor {
         } else {
             System.out.println("Erro ao alterar fornecedor.");
         }
-
     }
+
 
     public static void excluirFornecedor() {
         Scanner leitor = new Scanner(System.in);
@@ -182,4 +209,3 @@ public class MenuFornecedor {
         // Caso falso, mensagem de erro já foi exibida no DAO
     }
 }
-

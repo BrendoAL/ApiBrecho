@@ -1,10 +1,11 @@
-package View;
+package service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 import Dao.LocacaoDAO;
 import Dao.ProdutoDAO;
 import Model.Fornecedor;
@@ -12,6 +13,7 @@ import Model.Locacao;
 import Model.Produto;
 
 public class MenuLocacao {
+
 
     public static void menuLocacao(Scanner sc) {
         int opcao;

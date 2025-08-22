@@ -1,57 +1,103 @@
 package Dao;
 
-import Model.Produto;
-import Model.Venda;
-import View.ConexaoDB;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import Model.Venda;
+import Model.VendaItem;
+import View.ConexaoDB;
+
 public class VendaDAO {
 
-    public void registrarVenda (Venda venda) {
-        String sql = "INSERT INTO tb_venda (dataVenda, total, tb_produto_id, quantidade, fornecedor_id) VALUES (?, ?, ?, ?,?)";
+
+    public int inserirVenda(Venda venda) {
+        String sql = "INSERT INTO tb_venda (dataVenda, total, cliente_id, forma_pagamento) VALUES (?, ?, ?, ?)";
+        int idVenda = -1;
 
         try (Connection conn = ConexaoDB.getConexao();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            // RETURN_GENERATED_KEYS retorna os valores gerados automaticamente
-            stmt.setDate(1, new java.sql.Date(venda.getData().getTime()));
-            stmt.setDouble(2, venda.getProduto().getPreco() * venda.getQuantidade());
-            stmt.setLong(3, venda.getProduto().getId());
-            stmt.setInt(4, venda.getQuantidade());
-            stmt.setInt(5, venda.getFornecedor().getId());
+
+            stmt.setDate(1, Date.valueOf(venda.getDataVenda()));
+            stmt.setDouble(2, venda.getTotal());
+            stmt.setInt(3, venda.getClienteId());
+            stmt.setString(4, venda.getFormaPagamento());
             stmt.executeUpdate();
 
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                venda.setId(rs.getLong(1));
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    idVenda = rs.getInt(1);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return idVenda;
+    }
+
+
+    public void inserirItemVenda(VendaItem item) {
+        String sql = "INSERT INTO tb_venda_itens (tb_venda_id, tb_produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = ConexaoDB.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, item.getVendaId());
+            stmt.setInt(2, item.getProdutoId());
+            stmt.setInt(3, item.getQuantidade());
+            stmt.setDouble(4, item.getPrecoUnitario());
+            stmt.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public List<Venda> vendasRegistradas() {
+
+    public List<Venda> listarVendas() {
         List<Venda> vendas = new ArrayList<>();
-        String sql = "SELECT * FROM tb_venda";
+        String sql = """
+            SELECT v.id, v.dataVenda, v.total, v.cliente_id, v.forma_pagamento,
+                   i.tb_produto_id, p.nome AS produto_nome, i.quantidade, i.preco_unitario
+            FROM tb_venda v
+            LEFT JOIN tb_venda_itens i ON v.id = i.tb_venda_id
+            LEFT JOIN tb_produto p ON i.tb_produto_id = p.id
+            ORDER BY v.id
+        """;
 
         try (Connection conn = ConexaoDB.getConexao();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
-            ProdutoDAO produtoDAO = new ProdutoDAO();
+            Venda venda = null;
+            int idVendaAtual = -1;
 
             while (rs.next()) {
-                Venda v = new Venda();
-                v.setId(rs.getLong("id"));
-                v.setData(rs.getDate("dataVenda"));
-                Produto p = produtoDAO.getByIdProduto(rs.getInt("tb_produto_id"));
-                v.setProduto(p);
-                v.setQuantidade(rs.getInt("quantidade"));
-                vendas.add(v);
-            }
+                int idVenda = rs.getInt("id");
 
+                if (idVenda != idVendaAtual) {
+                    venda = new Venda();
+                    venda.setId(idVenda);
+                    venda.setDataVenda(rs.getDate("dataVenda").toLocalDate());
+                    venda.setTotal(rs.getDouble("total"));
+                    venda.setClienteId(rs.getInt("cliente_id"));
+                    venda.setFormaPagamento(rs.getString("forma_pagamento"));
+                    vendas.add(venda);
+                    idVendaAtual = idVenda;
+                }
+
+                int produtoId = rs.getInt("tb_produto_id");
+                if (produtoId > 0) {
+                    VendaItem item = new VendaItem();
+                    item.setVendaId(idVenda);
+                    item.setProdutoId(produtoId);
+                    item.setProdutoNome(rs.getString("produto_nome"));
+                    item.setQuantidade(rs.getInt("quantidade"));
+                    item.setPrecoUnitario(rs.getDouble("preco_unitario"));
+                    venda.getItens().add(item);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -59,26 +105,46 @@ public class VendaDAO {
         return vendas;
     }
 
-    public Venda buscarPorId(long id) {
-        String sql = "SELECT * FROM tb_venda WHERE id = ?";
+
+    public Venda buscarVendaPorId(int id) {
         Venda venda = null;
+        String sql = """
+            SELECT v.id, v.dataVenda, v.total, v.cliente_id, v.forma_pagamento,
+                   i.tb_produto_id, p.nome AS produto_nome, i.quantidade, i.preco_unitario
+            FROM tb_venda v
+            LEFT JOIN tb_venda_itens i ON v.id = i.tb_venda_id
+            LEFT JOIN tb_produto p ON i.tb_produto_id = p.id
+            WHERE v.id = ?
+        """;
 
-        try (Connection conn = ConexaoDB.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexaoDB.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setLong(1, id);
-            ResultSet rs = stmt.executeQuery();
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    if (venda == null) {
+                        venda = new Venda();
+                        venda.setId(rs.getInt("id"));
+                        venda.setDataVenda(rs.getDate("dataVenda").toLocalDate());
+                        venda.setTotal(rs.getDouble("total"));
+                        venda.setClienteId(rs.getInt("cliente_id"));
+                        venda.setFormaPagamento(rs.getString("forma_pagamento"));
+                        venda.setItens(new ArrayList<>());
+                    }
 
-            if (rs.next()) {
-                venda = new Venda();
-                venda.setId(rs.getLong("id"));
-                venda.setData(rs.getDate("dataVenda"));
-
-                ProdutoDAO produtoDAO = new ProdutoDAO();
-                Produto p = produtoDAO.getByIdProduto(rs.getInt("tb_produto_id"));
-                venda.setProduto(p);
-                venda.setQuantidade(rs.getInt("quantidade"));
+                    int produtoId = rs.getInt("tb_produto_id");
+                    if (produtoId > 0) {
+                        VendaItem item = new VendaItem();
+                        item.setVendaId(venda.getId());
+                        item.setProdutoId(produtoId);
+                        item.setProdutoNome(rs.getString("produto_nome"));
+                        item.setQuantidade(rs.getInt("quantidade"));
+                        item.setPrecoUnitario(rs.getDouble("preco_unitario"));
+                        venda.getItens().add(item);
+                    }
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -86,95 +152,105 @@ public class VendaDAO {
         return venda;
     }
 
-    public boolean removerVendaPorId(long id) {
-        String sql = "DELETE FROM tb_venda WHERE id = ?";
-        try (Connection conn = ConexaoDB.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setLong(1, id);
-            int linhasAfetadas = stmt.executeUpdate();
+    public void excluirVenda(int id) {
+        String sqlItens = "DELETE FROM tb_venda_itens WHERE tb_venda_id = ?";
+        String sqlVenda = "DELETE FROM tb_venda WHERE id = ?";
 
-            return linhasAfetadas > 0;
+        try (Connection conn = ConexaoDB.getConexao()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmtItens = conn.prepareStatement(sqlItens)) {
+                stmtItens.setInt(1, id);
+                stmtItens.executeUpdate();
+            }
+
+            try (PreparedStatement stmtVenda = conn.prepareStatement(sqlVenda)) {
+                stmtVenda.setInt(1, id);
+                stmtVenda.executeUpdate();
+            }
+
+            conn.commit();
 
         } catch (SQLException e) {
-            System.err.println("Erro ao cancelar venda: " + e.getMessage());
-            return false;
+            e.printStackTrace();
         }
     }
 
-    public boolean registrarDevolucao(long idVenda) {
-        try (Connection conn = ConexaoDB.getConexao()) {
 
-            // 1. Buscar produto e quantidade da venda
-            String sqlBusca = "SELECT tb_produto_id, quantidade FROM tb_venda WHERE id = ?";
-            PreparedStatement stmtBusca = conn.prepareStatement(sqlBusca);
-            stmtBusca.setLong(1, idVenda);
-            ResultSet rs = stmtBusca.executeQuery();
-
-            if (!rs.next()) {
-                System.out.println("Venda não encontrada.");
-                return false;
+    public boolean existeDevolucaoParaVenda(int vendaId) {
+        String sql = "SELECT COUNT(*) FROM tb_devolucao WHERE venda_id = ?";
+        try (Connection conn = ConexaoDB.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, vendaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
-
-            long produtoId = rs.getLong("tb_produto_id");
-            int quantidade = rs.getInt("quantidade");
-
-            // 2. Atualizar o estoque do produto
-            String sqlEstoque = "UPDATE tb_produto SET estoque = estoque + ? WHERE id = ?";
-            PreparedStatement stmtEstoque = conn.prepareStatement(sqlEstoque);
-            stmtEstoque.setInt(1, quantidade);
-            stmtEstoque.setLong(2, produtoId);
-            stmtEstoque.executeUpdate();
-
-            // 3. Deletar a venda
-            String sqlDeleta = "DELETE FROM tb_venda WHERE id = ?";
-            PreparedStatement stmtDeleta = conn.prepareStatement(sqlDeleta);
-            stmtDeleta.setLong(1, idVenda);
-            int linhasAfetadas = stmtDeleta.executeUpdate();
-
-            return linhasAfetadas > 0;
-
         } catch (SQLException e) {
-            System.err.println("Erro ao registrar devolução: " + e.getMessage());
-            return false;
+            e.printStackTrace();
         }
+        return false;
     }
 
-    public boolean trocarProdutoNaVenda(long idVenda, long idAntigo, long idNovo, int quantidade) {
+
+    public boolean registrarDevolucao(int vendaId, String motivo, double valorDevolvido) {
+        String sqlDevolucao = "INSERT INTO tb_devolucao (venda_id, motivo, valor_devolvido, data_devolucao) VALUES (?, ?, ?, ?)";
+        String sqlUpdateVenda = "UPDATE tb_venda SET status = 'Devolvida' WHERE id = ?";
+
         try (Connection conn = ConexaoDB.getConexao()) {
+            conn.setAutoCommit(false);
 
-            // 1. Devolve estoque do produto antigo
-            PreparedStatement stmtDevolve = conn
-                    .prepareStatement("UPDATE tb_produto SET estoque = estoque + ? WHERE id = ?");
-            stmtDevolve.setInt(1, quantidade);
-            stmtDevolve.setLong(2, idAntigo);
-            stmtDevolve.executeUpdate();
-
-            // 2. Verifica estoque do novo produto
-            PreparedStatement stmtEstoque = conn.prepareStatement("SELECT estoque FROM tb_produto WHERE id = ?");
-            stmtEstoque.setLong(1, idNovo);
-            ResultSet rs = stmtEstoque.executeQuery();
-            if (!rs.next() || rs.getInt("estoque") < quantidade) {
-                return false;
+            try (PreparedStatement stmtDevolucao = conn.prepareStatement(sqlDevolucao)) {
+                stmtDevolucao.setInt(1, vendaId);
+                stmtDevolucao.setString(2, motivo);
+                stmtDevolucao.setDouble(3, valorDevolvido);
+                stmtDevolucao.setDate(4, Date.valueOf(LocalDate.now()));
+                stmtDevolucao.executeUpdate();
             }
 
-            // 3. Baixa estoque do novo produto
-            PreparedStatement stmtBaixar = conn
-                    .prepareStatement("UPDATE tb_produto SET estoque = estoque - ? WHERE id = ?");
-            stmtBaixar.setInt(1, quantidade);
-            stmtBaixar.setLong(2, idNovo);
-            stmtBaixar.executeUpdate();
-
-            // 4. Atualiza venda com novo produto
-            PreparedStatement stmtAtualiza = conn
-                    .prepareStatement("UPDATE tb_venda SET tb_produto_id = ? WHERE id = ?");
-            stmtAtualiza.setLong(1, idNovo);
-            stmtAtualiza.setLong(2, idVenda);
-            stmtAtualiza.executeUpdate();
-
+            try (PreparedStatement stmtUpdateVenda = conn.prepareStatement(sqlUpdateVenda)) {
+                stmtUpdateVenda.setInt(1, vendaId);
+                stmtUpdateVenda.executeUpdate();
+            }
+            conn.commit();
             return true;
-
         } catch (SQLException e) {
-            System.err.println("Erro ao trocar produto: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean adicionarAoTotalVenda(int idVenda, double diferenca) {
+        String sql = "UPDATE tb_venda SET total = total + ? WHERE id = ?";
+        try (Connection conn = ConexaoDB.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, diferenca);
+            stmt.setInt(2, idVenda);
+            int linhasAfetadas = stmt.executeUpdate();
+            return linhasAfetadas > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean trocarProdutoNaVenda(int idVenda, int idProdutoAntigo, int idProdutoNovo, int quantidade, double novoPrecoUnitario) {
+        String sql = "UPDATE tb_venda_itens SET tb_produto_id = ?, quantidade = ?, preco_unitario = ? WHERE tb_venda_id = ? AND tb_produto_id = ?";
+        try (Connection conn = ConexaoDB.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idProdutoNovo);
+            stmt.setInt(2, quantidade);
+            stmt.setDouble(3, novoPrecoUnitario);
+            stmt.setInt(4, idVenda);
+            stmt.setInt(5, idProdutoAntigo);
+            int linhasAfetadas = stmt.executeUpdate();
+            return linhasAfetadas > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }

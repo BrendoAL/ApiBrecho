@@ -1,23 +1,26 @@
 package Dao;
 
-import Model.Fornecedor;
-import Model.Locacao;
-import Model.Produto;
-import View.ConexaoDB;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+
+
+
+import View.ConexaoDB;
+import Model.Fornecedor;
+import Model.Locacao;
+import Model.Produto;
+
+
 import java.util.List;
 
 public class LocacaoDAO {
     public static List<Locacao> buscarTodasLocacoes() {
         List<Locacao> locacoes = new ArrayList<>();
-        String sql = "SELECT l.id, l.dataLocacao, l.dataDevolucao, l.tb_fornecedor_id, l.tb_produto_id, l.statusAtualLocacao " +
-                "FROM tb_locacao l";
+        String sql = "SELECT id, data_locacao, data_devolucao, fornecedor_id, produto_id, statusAtual FROM tb_locacao";
 
         try (Connection conn = ConexaoDB.getConexao();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -26,14 +29,12 @@ public class LocacaoDAO {
             while (rs.next()) {
                 Locacao locacao = new Locacao();
                 locacao.setId(rs.getInt("id"));
-                locacao.setDataLocacao(rs.getDate("dataLocacao").toLocalDate());
-                locacao.setDataDevolucao(rs.getDate("dataDevolucao").toLocalDate());
-                locacao.setStatusAtual(rs.getString("statusAtualLocacao"));
+                locacao.setDataLocacao(rs.getDate("data_locacao").toLocalDate());
+                locacao.setDataDevolucao(rs.getDate("data_devolucao").toLocalDate());
+                locacao.setStatusAtual(rs.getString("statusAtual"));
 
-
-                int fornecedorId = rs.getInt("tb_fornecedor_id");
-                int produtoId = rs.getInt("tb_produto_id");
-
+                int fornecedorId = rs.getInt("fornecedor_id");
+                int produtoId = rs.getInt("produto_id");
 
                 locacao.setFornecedorId(fornecedorId);
                 locacao.setProdutoId(produtoId);
@@ -160,5 +161,3 @@ public class LocacaoDAO {
         }
     }
 }
-
-
